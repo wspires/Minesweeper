@@ -1,7 +1,7 @@
 # Minesweeper
 
 Play the classic game Minesweeper!
-
+```
   0 1 2 3 4 5 6 7 8
  |-----------------|
 0|1|1| | |1|1|2|1|1|0
@@ -15,4 +15,4 @@ Play the classic game Minesweeper!
 8| | | | | | | | | |8
  |-----------------|
   0 1 2 3 4 5 6 7 8
-
+```
