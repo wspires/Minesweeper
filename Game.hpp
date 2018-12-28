@@ -40,13 +40,15 @@ protected:
     void make_mines(std::size_t a_mines);
     void count_adjacent_mines();
 
+    bool handle_cmd(std::vector<std::string> const &, std::ostream &);
     void handle_help_cmd(std::ostream &);
     void handle_select_cmd(std::vector<std::string> const &, std::ostream &);
-    bool handle_cmd(std::vector<std::string> const &, std::ostream &);
     void show_more_board(Coord const &);
     void check_for_win();
+    void handle_mark_cmd(std::vector<std::string> const &, std::ostream &);
 
     static std::string select_cmd_usage();
+    static std::string mark_cmd_usage();
 
     using Coords = std::vector<Coord>;
     static Coords offsets();

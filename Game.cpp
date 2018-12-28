@@ -180,6 +180,10 @@ handle_cmd(std::vector<std::string> const & a_words, std::ostream & a_os)
     {
         handle_select_cmd(a_words, a_os);
     }
+    else if (cmd == "mark" or cmd == "m")
+    {
+        handle_mark_cmd(a_words, a_os);
+    }
     else if (cmd == "board" or cmd == "b")
     {
         a_os << m_play_board;
@@ -200,6 +204,7 @@ handle_help_cmd(std::ostream & a_os)
     a_os << "quit: Quit game\n"
         << "help: Show this help message\n"
         << "select: Select square: " << select_cmd_usage() << '\n'
+        << "mark: Mark square as suspected mine: " << mark_cmd_usage() << '\n'
         << "board: Show the board\n"
         ;
 }
@@ -299,7 +304,9 @@ check_for_win()
     {
         for (std::size_t j = 0; j != m_play_board.rows(); ++j)
         {
-            if (m_play_board.at(i, j) == Cell::Hidden)
+            if (m_play_board.at(i, j) == Cell::Hidden
+                or m_play_board.at(i, j) == Cell::Marked
+                )
             {
                 ++hidden_count;
             }
@@ -311,11 +318,54 @@ check_for_win()
     }
 }
 
+void
+Game::
+handle_mark_cmd(std::vector<std::string> const & a_words, std::ostream & a_os)
+{
+    auto write_usage = [&a_os]()
+        {
+            a_os << "usage: " << mark_cmd_usage() << '\n';
+        };
+    if (a_words.size() != 3)
+    {
+        write_usage();
+        return;
+    }
+
+    try
+    {
+        auto row = std::stoi(a_words[1]);
+        auto col = std::stoi(a_words[2]);
+        auto coord = Coord{row, col};
+
+        if (m_play_board.at(coord) == Cell::Hidden)
+        {
+            m_play_board.at(coord) = Cell::Marked;
+        }
+        else if (m_play_board.at(coord) == Cell::Marked)
+        {
+            m_play_board.at(coord) = Cell::Hidden;
+        }
+        a_os << m_play_board;
+    }
+    catch (...)
+    {
+        write_usage();
+    }
+}
+
 std::string
 Game::
 select_cmd_usage()
 {
     return "select <row> <col>";
+}
+
+std::string
+Game::
+mark_cmd_usage()
+{
+    return "mark <row> <col>";
 }
 
 std::ostream &

@@ -10,7 +10,7 @@ operator<<(std::ostream & a_os, Cell a_cell)
     switch (a_cell)
     {
         case Cell::Mine:
-            a_os << 'M';
+            a_os << 'X';
             break;
 
         case Cell::Zero:
@@ -50,7 +50,7 @@ operator<<(std::ostream & a_os, Cell a_cell)
             break;
 
         case Cell::Marked:
-            a_os << '!';
+            a_os << 'X';
             break;
 
         case Cell::Hidden:
