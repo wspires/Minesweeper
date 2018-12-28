@@ -17,7 +17,7 @@ enum class Cell : int
     Six   =   6, // Adjacent to 6 mines.
     Seven =   7, // Adjacent to 7 mines.
     Eight =   8, // Adjacent to 8 mines.
-    Marked =  9, // Player has marked cell as a mine.
+    Flagged = 9, // Player has flagged cell as a mine.
     Hidden = 10, // Cell is hidden from the player.
 };
 

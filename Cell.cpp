@@ -49,8 +49,8 @@ operator<<(std::ostream & a_os, Cell a_cell)
             a_os << '8';
             break;
 
-        case Cell::Marked:
-            a_os << 'X';
+        case Cell::Flagged:
+            a_os << 'F';
             break;
 
         case Cell::Hidden:

@@ -30,8 +30,8 @@ make_mines(std::size_t a_mines)
 
     m_mine_coords.clear();
 
-    std::random_device rd{};  //Will be used to obtain a seed for the random number engine
-    std::mt19937 gen{rd()}; //Standard mersenne_twister_engine seeded with rd()
+    std::random_device rd{}; // Will be used to obtain a seed for the random number engine.
+    std::mt19937 gen{rd()}; // Standard mersenne_twister_engine seeded with rd().
 
     // Distributions for rows and columns.
     std::uniform_int_distribution<> row_dist{0, static_cast<int>(m_real_board.rows() - 1)};
@@ -170,9 +170,11 @@ handle_cmd(std::vector<std::string> const & a_words, std::ostream & a_os)
     auto && cmd = a_words.front();
     if (cmd == "quit" or cmd == "q")
     {
+        m_result = Result::Quit;
+        a_os << m_real_board;
         return false;
     }
-    else if (cmd == "help" or cmd == "?")
+    else if (cmd == "help" or cmd == "h" or cmd == "?")
     {
         handle_help_cmd(a_os);
     }
@@ -180,9 +182,9 @@ handle_cmd(std::vector<std::string> const & a_words, std::ostream & a_os)
     {
         handle_select_cmd(a_words, a_os);
     }
-    else if (cmd == "mark" or cmd == "m")
+    else if (cmd == "flag" or cmd == "f")
     {
-        handle_mark_cmd(a_words, a_os);
+        handle_flag_cmd(a_words, a_os);
     }
     else if (cmd == "board" or cmd == "b")
     {
@@ -193,6 +195,7 @@ handle_cmd(std::vector<std::string> const & a_words, std::ostream & a_os)
         a_os << "Invalid command: '" << cmd << "'" << std::endl;
     }
 
+    // Keep playing until have a result.
     bool const keep_playing = (m_result == Result::None);
     return keep_playing;
 }
@@ -204,7 +207,7 @@ handle_help_cmd(std::ostream & a_os)
     a_os << "quit: Quit game\n"
         << "help: Show this help message\n"
         << "select: Select square: " << select_cmd_usage() << '\n'
-        << "mark: Mark square as suspected mine: " << mark_cmd_usage() << '\n'
+        << "flag: Flag square as suspected mine: " << flag_cmd_usage() << '\n'
         << "board: Show the board\n"
         ;
 }
@@ -228,6 +231,16 @@ handle_select_cmd(std::vector<std::string> const & a_words, std::ostream & a_os)
         auto row = std::stoi(a_words[1]);
         auto col = std::stoi(a_words[2]);
         auto coord = Coord{row, col};
+
+        if (not m_real_board.is_valid(coord))
+        {
+            auto max_row = static_cast<decltype(row)>(m_real_board.rows() - 1);
+            auto max_col = static_cast<decltype(col)>(m_real_board.cols() - 1);
+            a_os << "Coordinate " << coord << " is invalid"
+                << ": Select a coordinate from " << Coord{0, 0} << " to " << Coord{max_row, max_col}
+                << std::endl;
+            return;
+        }
 
         // Selected a mine, so lost.
         if (m_mine_coords.find(coord) != std::cend(m_mine_coords))
@@ -262,6 +275,16 @@ show_more_board(Coord const & selected_coord)
 
         // Visit coordinate by showing more of the real board.
         m_play_board.at(coord) = m_real_board.at(coord);
+        visited.insert(coord);
+
+        // We can see cells that border a mine, but it acts as a wall and we cannot queue this adjacent cell,
+        // so only queue empty (0) cells.
+        auto cell = m_real_board.at(coord);
+        int cell_value = static_cast<int>(cell);
+        if (cell_value != 0)
+        {
+            continue;
+        }
 
         for (auto && offset : offsets())
         {
@@ -274,22 +297,8 @@ show_more_board(Coord const & selected_coord)
                 continue;
             }
 
-            // We can see cells that border a mine, but it acts as a wall and we cannot queue this adjacent cell,
-            // so only queue empty (0) cells.
-            auto cell = m_real_board.at(adj_coord);
-            int cell_value = static_cast<int>(cell);
-            if (cell_value >= 0 and cell_value <= 8)
-            {
-                // Visit coordinate by showing more of the real board.
-                m_play_board.at(adj_coord) = m_real_board.at(adj_coord);
-
-                if (cell_value == 0)
-                {
-                    visited.insert(adj_coord);
-                    q.push(adj_coord);
-                }
-            }
-
+            // Queue adjacent coordinate to be visited.
+            q.push(adj_coord);
         }
     }
 }
@@ -305,7 +314,7 @@ check_for_win()
         for (std::size_t j = 0; j != m_play_board.rows(); ++j)
         {
             if (m_play_board.at(i, j) == Cell::Hidden
-                or m_play_board.at(i, j) == Cell::Marked
+                or m_play_board.at(i, j) == Cell::Flagged
                 )
             {
                 ++hidden_count;
@@ -320,11 +329,11 @@ check_for_win()
 
 void
 Game::
-handle_mark_cmd(std::vector<std::string> const & a_words, std::ostream & a_os)
+handle_flag_cmd(std::vector<std::string> const & a_words, std::ostream & a_os)
 {
     auto write_usage = [&a_os]()
         {
-            a_os << "usage: " << mark_cmd_usage() << '\n';
+            a_os << "usage: " << flag_cmd_usage() << '\n';
         };
     if (a_words.size() != 3)
     {
@@ -340,9 +349,10 @@ handle_mark_cmd(std::vector<std::string> const & a_words, std::ostream & a_os)
 
         if (m_play_board.at(coord) == Cell::Hidden)
         {
-            m_play_board.at(coord) = Cell::Marked;
+            m_play_board.at(coord) = Cell::Flagged;
+            // TODO: Save flagged coords and add command to list them.
         }
-        else if (m_play_board.at(coord) == Cell::Marked)
+        else if (m_play_board.at(coord) == Cell::Flagged)
         {
             m_play_board.at(coord) = Cell::Hidden;
         }
@@ -363,9 +373,9 @@ select_cmd_usage()
 
 std::string
 Game::
-mark_cmd_usage()
+flag_cmd_usage()
 {
-    return "mark <row> <col>";
+    return "flag <row> <col>";
 }
 
 std::ostream &
