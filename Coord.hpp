@@ -52,7 +52,7 @@ struct Coord
         col += a_rhs.col;
         return *this;
     }
-    Coord & operator+(Coord const & a_rhs) const
+    Coord operator+(Coord const & a_rhs) const
     {
         return Coord{*this} += a_rhs;
     }
@@ -62,7 +62,7 @@ struct Coord
         col -= a_rhs.col;
         return *this;
     }
-    Coord & operator-(Coord const & a_rhs) const
+    Coord operator-(Coord const & a_rhs) const
     {
         return Coord{*this} -= a_rhs;
     }

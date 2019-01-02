@@ -114,7 +114,9 @@ play(std::istream & a_is, std::ostream & a_os)
 
     static std::string const prompt = "> ";
 
+    // Show user the board and available commands to begin.
     a_os << m_play_board;
+    handle_help_cmd(a_os);
     a_os << prompt;
 
     // Read each line.
@@ -204,7 +206,8 @@ void
 Game::
 handle_help_cmd(std::ostream & a_os)
 {
-    a_os << "quit: Quit game\n"
+    a_os << "=== Help ===\n"
+        << "quit: Quit game\n"
         << "help: Show this help message\n"
         << "select: Select square: " << select_cmd_usage() << '\n'
         << "flag: Flag square as suspected mine: " << flag_cmd_usage() << '\n'
