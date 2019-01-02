@@ -143,9 +143,9 @@ play(std::istream & a_is, std::ostream & a_os)
         a_os << prompt;
     }
 
+    a_os << m_real_board;
     if (m_result != Result::Quit)
     {
-        a_os << m_real_board;
         if (m_result == Result::Won)
         {
             a_os << "You won!" << std::endl;
@@ -173,7 +173,6 @@ handle_cmd(std::vector<std::string> const & a_words, std::ostream & a_os)
     if (cmd == "quit" or cmd == "q")
     {
         m_result = Result::Quit;
-        a_os << m_real_board;
         return false;
     }
     else if (cmd == "help" or cmd == "h" or cmd == "?")
